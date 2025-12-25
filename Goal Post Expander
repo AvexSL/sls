@@ -1,0 +1,101 @@
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local defaultSize = Vector3.new(21, 15, 6)
+local currentSize = defaultSize
+local visualsEnabled = false
+
+local function getGoals()
+    local home = workspace:FindFirstChild("Stadium") and workspace.Stadium.Teams.Home.Goal:FindFirstChild("Hitbox")
+    local away = workspace:FindFirstChild("Stadium") and workspace.Stadium.Teams.Away.Goal:FindFirstChild("Hitbox")
+    return home, away
+end
+
+local function applyToPart(part, color)
+    if not part then return end
+    part.Size = currentSize
+    local glow = part:FindFirstChild("GoalGlow")
+    if not glow then
+        glow = Instance.new("SelectionBox")
+        glow.Name = "GoalGlow"
+        glow.LineThickness = 0.1
+        glow.SurfaceTransparency = 0.8
+        glow.Parent = part
+    end
+    glow.Adornee = part
+    glow.Color3 = color
+    glow.SurfaceColor3 = color
+    glow.Visible = visualsEnabled
+end
+
+local screenGui = Instance.new("ScreenGui", CoreGui)
+local frame = Instance.new("Frame", screenGui)
+frame.Size = UDim2.new(0, 220, 0, 150)
+frame.Position = UDim2.new(0.5, -110, 0.4, 0)
+frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+frame.BorderSizePixel = 2
+frame.Draggable = true
+frame.Active = true
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Text = "Avex Is Sexy!!! | Goal Post Hbe expander"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+
+local visBtn = Instance.new("TextButton", frame)
+visBtn.Size = UDim2.new(0.9, 0, 0, 35)
+visBtn.Position = UDim2.new(0.05, 0, 0.3, 0)
+visBtn.Text = "VISUALS: OFF"
+visBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+visBtn.TextColor3 = Color3.new(1, 1, 1)
+
+local sliderBack = Instance.new("Frame", frame)
+sliderBack.Size = UDim2.new(0.9, 0, 0, 10)
+sliderBack.Position = UDim2.new(0.05, 0, 0.75, 0)
+sliderBack.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+
+local sliderBtn = Instance.new("TextButton", sliderBack)
+sliderBtn.Size = UDim2.new(0, 15, 0, 20)
+sliderBtn.Position = UDim2.new(0.5, 0, -0.5, 0)
+sliderBtn.Text = ""
+sliderBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+
+visBtn.MouseButton1Click:Connect(function()
+    visualsEnabled = not visualsEnabled
+    visBtn.Text = visualsEnabled and "VISUALS: ON" or "VISUALS: OFF"
+    visBtn.BackgroundColor3 = visualsEnabled and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(150, 0, 0)
+end)
+
+local dragging = false
+sliderBtn.MouseButton1Down:Connect(function() dragging = true end)
+UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local rel = math.clamp((input.Position.X - sliderBack.AbsolutePosition.X) / sliderBack.AbsoluteSize.X, 0, 1)
+        sliderBtn.Position = UDim2.new(rel, -7, -0.5, 0)
+        local sizeVal = 10 + (rel * 60)
+        currentSize = Vector3.new(sizeVal * 1.5, sizeVal, sizeVal * 0.8)
+    end
+end)
+
+local runConn = RunService.RenderStepped:Connect(function()
+    local h, a = getGoals()
+    applyToPart(h, Color3.fromRGB(0, 255, 255))
+    applyToPart(a, Color3.fromRGB(255, 0, 255))
+end)
+
+UserInputService.InputBegan:Connect(function(input, proc)
+    if not proc and input.KeyCode == Enum.KeyCode.K then
+        runConn:Disconnect()
+        local h, a = getGoals()
+        if h then h.Size = defaultSize if h:FindFirstChild("GoalGlow") then h.GoalGlow:Destroy() end end
+        if a then a.Size = defaultSize if a:FindFirstChild("GoalGlow") then a.GoalGlow:Destroy() end end
+        screenGui:Destroy()
+    end
+end)
+
+-- FAHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
