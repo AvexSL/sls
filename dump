@@ -65,9 +65,9 @@ copyBtn.MouseButton1Click:Connect(function()
     status.Text = "SCANNING (MAY LAG)..."
     wait(0.1)
     
-    dumpLog = "-- Avex_HRS ULTIMATE DEEP DUMP --\n\n"
+    dumpLog = "-- Avex --\n\n"
     
-    -- Scan Critical Paths found in brine.txt
+
     startDeepScan(ReplicatedStorage)
     startDeepScan(Players.LocalPlayer)
     
@@ -83,7 +83,7 @@ copyBtn.MouseButton1Click:Connect(function()
     status.Text = "Ready to Scan"
 end)
 
--- 3. TERMINATION (I key)
+
 UIS.InputBegan:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.I then
         isRunning = false
@@ -92,4 +92,4 @@ UIS.InputBegan:Connect(function(input)
     end
 end)
 
-warn("💀 Avex_HRS Deep Dumper Active. Click the button to capture all game data.")
+warn("Active. Click the button to capture all game data.")
