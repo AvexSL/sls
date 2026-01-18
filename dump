@@ -1,0 +1,95 @@
+
+local UIS = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+
+local dumpLog = " Avex --\n\n"
+local isRunning = true
+
+-- 1. THE RECURSIVE DUMP ENGINE
+-- Scans every service and captures Values, Classes, and Paths
+local function startDeepScan(target, depth)
+    if not isRunning then return end
+    depth = depth or 0
+    local indent = string.rep("  ", depth)
+    
+    for _, obj in pairs(target:GetChildren()) do
+        pcall(function()
+            
+            local line = string.format("%s[%s]: %s\n", indent, obj.ClassName, obj:GetFullName())
+            dumpLog = dumpLog .. line
+            
+           
+            if obj:IsA("ValueBase") then
+                dumpLog = dumpLog .. indent .. "  -> [DATA]: " .. tostring(obj.Value) .. "\n"
+            end
+            
+            
+            if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction") then
+                dumpLog = dumpLog .. indent .. "  -> [NETWORK TRIGGER]\n"
+            end
+
+           
+            if #obj:GetChildren() > 0 and depth < 12 then
+                startDeepScan(obj, depth + 1)
+            end
+        end)
+    end
+end
+
+
+local screenGui = Instance.new("ScreenGui", game.CoreGui)
+local mainFrame = Instance.new("Frame", screenGui)
+local copyBtn = Instance.new("TextButton", mainFrame)
+local status = Instance.new("TextLabel", mainFrame)
+
+mainFrame.Size = UDim2.new(0, 220, 0, 90)
+mainFrame.Position = UDim2.new(0.5, -110, 0.8, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BorderSizePixel = 2
+
+copyBtn.Size = UDim2.new(0.9, 0, 0.45, 0)
+copyBtn.Position = UDim2.new(0.05, 0, 0.1, 0)
+copyBtn.Text = "GENERATE & COPY DUMP"
+copyBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+copyBtn.TextColor3 = Color3.new(1, 1, 1)
+copyBtn.Font = Enum.Font.SourceSansBold
+
+status.Size = UDim2.new(0.9, 0, 0.35, 0)
+status.Position = UDim2.new(0.05, 0, 0.6, 0)
+status.Text = "Ready to Scan"
+status.TextColor3 = Color3.new(0.7, 0.7, 0.7)
+status.BackgroundTransparency = 1
+
+copyBtn.MouseButton1Click:Connect(function()
+    status.Text = "SCANNING (MAY LAG)..."
+    wait(0.1)
+    
+    dumpLog = "-- Avex_HRS ULTIMATE DEEP DUMP --\n\n"
+    
+    -- Scan Critical Paths found in brine.txt
+    startDeepScan(ReplicatedStorage)
+    startDeepScan(Players.LocalPlayer)
+    
+    if setclipboard then
+        setclipboard(dumpLog)
+        status.Text = "COPIED TO CLIPBOARD "
+    else
+        print(dumpLog)
+        status.Text = "LOGGED TO F9 CONSOLE "
+    end
+    
+    wait(3)
+    status.Text = "Ready to Scan"
+end)
+
+-- 3. TERMINATION (I key)
+UIS.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.I then
+        isRunning = false
+        screenGui:Destroy()
+        warn(" Dumper Terminated.")
+    end
+end)
+
+warn("💀 Avex_HRS Deep Dumper Active. Click the button to capture all game data.")
